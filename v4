@@ -1,51 +1,54 @@
-# Load CSV files
-$dimensions = Import-Csv -Path .\dimensions.csv
-$expressions = Import-Csv -Path .\expressions.csv
+# Set the file paths
+$dimensionsFile = "C:\dimensions.csv"
+$expressionsFile = "C:\expressions.csv"
+$templateFile = "C:\template.json"
+$outputFile = "C:\output.json"
 
-# Load template JSON
-$template = Get-Content -Raw -Path .\template.json | ConvertFrom-Json
+# Read in the CSV files
+$dimensions = Import-Csv $dimensionsFile
+$expressions = Import-Csv $expressionsFile
 
-# Create new table
-$table = New-QlikSenseTable -qFields $template.qFields -qMeasures $template.qMeasures -qLayout $template.qLayout
+# Read in the template JSON
+$template = Get-Content $templateFile | ConvertFrom-Json
 
-# Add dimensions
-foreach ($dimension in $dimensions) {
-    $qDimension = New-Object PSObject -Property @{
+# Create a new array to store the dimensions
+$dimensionsArray = @()
+
+# Loop through each row in the dimensions CSV
+foreach ($row in $dimensions) {
+    # Create a new object for the dimension
+    $dimension = [PSCustomObject]@{
         qDef = @{
-            qFieldDefs = $dimension.qFieldDefs
-            qSortCriterias = @()
-        }
-        qLabelExpression = @{
-            qExpr = $dimension.qLabelExpression
+            qFieldDefs = $row.qFieldDefs
+            qLabelExpression = $row.qLabelExpression
         }
     }
-    
-    # Merge with template properties
-    $qDimension = Merge-Object $template.qDimensions $qDimension
 
-    $table.qDimensions += $qDimension
+    # Add the dimension to the dimensions array
+    $dimensionsArray += $dimension
 }
 
-# Add expressions
-foreach ($expression in $expressions) {
-    $qMeasure = New-Object PSObject -Property @{
+# Create a new array to store the measures
+$measuresArray = @()
+
+# Loop through each row in the expressions CSV
+foreach ($row in $expressions) {
+    # Create a new object for the measure
+    $measure = [PSCustomObject]@{
         qDef = @{
-            qLabel = $expression.qLabelExpression
-            qDef = $expression.qDef
-            qLabelExpression = @{
-                qExpr = $expression.qLabelExpression
-            }
+            qLabelExpression = $row.qLabelExpression
         }
     }
-    
-    # Merge with template properties
-    $qMeasure = Merge-Object $template.qMeasures $qMeasure
 
-    $table.qMeasures += $qMeasure
+    # Add the measure to the measures array
+    $measuresArray += $measure
 }
 
-# Convert to JSON
-$json = ConvertTo-Json $table -Depth 10
+# Merge the dimensions and measures arrays with the template JSON
+$output = $template | Select-Object *
 
-# Write to file
-Set-Content -Path .\output.json -Value $json
+$output.qHyperCubeDef.qDimensions = $dimensionsArray
+$output.qHyperCubeDef.qMeasures = $measuresArray
+
+# Convert the output to JSON and write it to a file
+$output | ConvertTo-Json -Depth 10 | Out-File $outputFile
