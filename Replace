@@ -1,0 +1,28 @@
+$json = @"
+{
+  "employees": [
+    {
+      "name": "John",
+      "age": 30,
+      "city": "New York"
+    },
+    {
+      "name": "Mary",
+      "age": 25,
+      "city": "Los Angeles"
+    },
+    {
+      "name": "David",
+      "age": 35,
+      "city": "Chicago"
+    }
+  ]
+}
+"@
+
+$jsonObject = ConvertFrom-Json -InputObject $json
+
+$jsonObject.employees | Where-Object { $_.age -eq 30 } | ForEach-Object { $_.name = "30YearsOldAnonymous" }
+
+$jsonUpdated = ConvertTo-Json -InputObject $jsonObject -Depth 100
+$jsonUpdated
