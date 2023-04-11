@@ -1,14 +1,23 @@
-$newTableProperties = [ordered]@{
-    qInfo = [ordered]@{
-        qType = "table"
-        qId = $DashboardSheet.Replace(' ', '')
+# Get the template table properties
+$templateTableProperties = Get-Content $templatePathTemplateTableProperties -Raw | ConvertFrom-Json
+
+# Create a new object for the table properties
+$newTableProperties = [PSCustomObject]@{
+    qInfo = [PSCustomObject]@{
+        $DashboardSheet.psobject.Properties | ForEach-Object {
+            if($templateTableProperties.qInfo.psobject.Properties.Name -contains $_.Name){
+                $_.Value
+            }else{
+                $templateTableProperties.qInfo.$($_.Name)
+            }
+        }
     }
-    qHyperCubeDef = [ordered]@{
+    qHyperCubeDef = [PSCustomObject]@{
+        qInterColumnSortOrder = $columnIdList
+        qColumnOrder = $columnIdList
+        columnOrder = $columnIdList
+        columnWidths = $columnWidths
         qDimensions = @()
         qMeasures = @()
-        qInterColumnSortOrder = @($columnIdList)
-        qColumnOrder = @($columnIdList)
-        columnOrder = @($columnIdList)
-        columnWidths = @($columnWidths)
     }
 }
