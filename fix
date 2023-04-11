@@ -1,10 +1,14 @@
+#6 Add the dimensions to the Qlik Sense table properties
+
+$dimensionProperties = $tableProperties.qHyperCubeDef.qDimensions
+
 foreach ($dimension in $dimensions) {
   $newDimensionProperties = $dimensionProperties | Select-Object *
-  $qFieldDefs = @($dimension.qFieldDefs)
-  $qLabelExpression = @($dimension.qLabelExpression)
-  $newDimensionProperties.qDef.qFieldDefs = $qFieldDefs
-  $newDimensionProperties.qDef.qLabelExpression = $qLabelExpression
-  [PSCustomObject]$newDimensionProperties
- 
+
+  $newDimensionProperties.qDef.qFieldDefs = @($dimension.qFieldDefs)
+  $newDimensionProperties.qDef.qLabelExpression = @($dimension.qLabelExpression)
+  
   $newTableProperties.qHyperCubeDef.qDimensions += $newDimensionProperties
 }
+
+[PSCustomObject]$newTableProperties
