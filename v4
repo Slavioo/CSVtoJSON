@@ -1,54 +1,39 @@
-# Set the file paths
-$dimensionsFile = "C:\dimensions.csv"
-$expressionsFile = "C:\expressions.csv"
-$templateFile = "C:\template.json"
-$outputFile = "C:\output.json"
+# Read the JSON template
+$template = Get-Content .\template.json | ConvertFrom-Json
 
-# Read in the CSV files
-$dimensions = Import-Csv $dimensionsFile
-$expressions = Import-Csv $expressionsFile
+# Read the dimensions CSV file
+$dimensions = Import-Csv .\dimensions.csv
 
-# Read in the template JSON
-$template = Get-Content $templateFile | ConvertFrom-Json
+# Read the expressions CSV file
+$expressions = Import-Csv .\expressions.csv
 
-# Create a new array to store the dimensions
-$dimensionsArray = @()
-
-# Loop through each row in the dimensions CSV
-foreach ($row in $dimensions) {
-    # Create a new object for the dimension
-    $dimension = [PSCustomObject]@{
-        qDef = @{
-            qFieldDefs = $row.qFieldDefs
-            qLabelExpression = $row.qLabelExpression
-        }
+# Create the qDimensionsArray object
+$qDimensionsArray = foreach ($dimension in $dimensions) {
+    $qDimension = @{
+        qDef = $dimension.qFieldDefs
+        qLabelExpression = $dimension.qLabelExpression
     }
-
-    # Add the dimension to the dimensions array
-    $dimensionsArray += $dimension
+    $qDimension
 }
 
-# Create a new array to store the measures
-$measuresArray = @()
-
-# Loop through each row in the expressions CSV
-foreach ($row in $expressions) {
-    # Create a new object for the measure
-    $measure = [PSCustomObject]@{
-        qDef = @{
-            qLabelExpression = $row.qLabelExpression
-        }
+# Create the qMeasuresArray object
+$qMeasuresArray = foreach ($expression in $expressions) {
+    $qMeasure = @{
+        qDef = $expression.qDef
+        qLabelExpression = $expression.qLabelExpression
     }
-
-    # Add the measure to the measures array
-    $measuresArray += $measure
+    $qMeasure
 }
 
-# Merge the dimensions and measures arrays with the template JSON
-$output = $template | Select-Object *
+# Create the qHyperCubeDef object by merging the template with the dimensions and expressions
+$qHyperCubeDef = $template.qHyperCubeDef + @{
+    qDimensions = @{
+        qDef = $qDimensionsArray
+    }
+    qMeasures = @{
+        qDef = $qMeasuresArray
+    }
+} | Select-Object *
 
-$output.qHyperCubeDef.qDimensions = $dimensionsArray
-$output.qHyperCubeDef.qMeasures = $measuresArray
-
-# Convert the output to JSON and write it to a file
-$output | ConvertTo-Json -Depth 10 | Out-File $outputFile
+# Output the qHyperCubeDef as JSON
+$qHyperCubeDef | ConvertTo-Json -Depth 10
