@@ -1,10 +1,15 @@
 #6 Add the dimensions to the Qlik Sense table properties
-foreach ($dimension in $dimensions) {
-    $newDimension = [PSCustomObject] @{
-        qDef = @{
-            qFieldDefs = @($dimension.qFieldDefs)
-            qFieldLabels = @($dimension.qLabelExpression)
-        }
+$newTableProperties.qHyperCubeDef.qDimensions = foreach ($dimension in $dimensions) {
+    $dimensionProperties | Select-Object * | ForEach-Object {
+        $_.qDef.qFieldDefs = @($dimension.qFieldDefs)
+        $_
     }
-    $newTableProperties.qHyperCubeDef.qDimensions += $newDimension
+}
+
+#7 Add the measures to the Qlik Sense table properties
+$newTableProperties.qHyperCubeDef.qMeasures = foreach ($measure in $measures) {
+    $measureProperties | Select-Object * | ForEach-Object {
+        $_.qDef.qDef = $measure.qDef
+        $_
+    }
 }
