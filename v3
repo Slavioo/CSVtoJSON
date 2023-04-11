@@ -1,0 +1,19 @@
+foreach ($dimension in $dimensions) {
+    $newDimension = @{
+        "qDef" = @{
+            "qFieldDefs" = @($dimension.qFieldDefs)
+            "qLabel" = $dimension.qLabel
+        }
+    }
+
+    # Preserve other properties in qDimensions
+    $json.qHyperCubeDef.qDimensions = $json.qHyperCubeDef.qDimensions | ForEach-Object {
+        if ($_.qDef.qFieldDefs -eq $newDimension.qDef.qFieldDefs) {
+            $newDimension
+        } else {
+            $_
+        }
+    }
+
+    $json.qHyperCubeDef.qDimensions += $newDimension
+}
