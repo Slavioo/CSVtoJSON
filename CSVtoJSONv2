@@ -1,0 +1,32 @@
+# Import the required Qlik Sense APIs
+Add-Type -Path "C:\Program Files\Common Files\Qlik\Custom Data\Qlik.Ocx.DLL"
+Add-Type -Path "C:\Program Files\Common Files\Qlik\Custom Data\Interop.Qlik.Ocx.dll"
+
+# Define the Qlik Sense app ID and the path to the JSON template file
+$appId = "f80a61b9-9f28-4577-8c2a-2d13e14c4110"
+$jsonFilePath = "C:\QlikSense\TableTemplate.json"
+
+# Define the path to the CSV file that contains the dimension information
+$dimensionCsvFilePath = "C:\QlikSense\Dimensions.csv"
+
+# Read the dimension information from the CSV file
+$dimensions = Import-Csv $dimensionCsvFilePath
+
+# Replace the dimension properties in the JSON template with the values from the CSV file
+$json = Get-Content $jsonFilePath -Raw | ConvertFrom-Json
+$json.qHyperCubeDef.qDimensions = @()
+
+foreach ($dimension in $dimensions) {
+    $newDimension = @{
+        "qDef" = @{
+            "qFieldDefs" = @($dimension.qFieldDefs)
+            "qLabel" = $dimension.qLabel
+        }
+    }
+    $json.qHyperCubeDef.qDimensions += $newDimension
+}
+
+# Create the new table in the Qlik Sense app
+$doc = New-Object -ComObject QlikTech.QlikView
+$doc.OpenDocument($appId)
+$table = $doc.CreateSessionObject($json)
