@@ -1,0 +1,77 @@
+$jsonFilePath = "original.json"
+$qDimensionsFilePath = "qDimensions.csv"
+$qMeasuresFilePath = "qMeasures.csv"
+
+# Read the original JSON file
+$json = Get-Content $jsonFilePath | ConvertFrom-Json
+
+# Read the qDimensions and qMeasures CSV files
+$qDimensions = Import-Csv $qDimensionsFilePath
+$qMeasures = Import-Csv $qMeasuresFilePath
+
+# Create a new hash table to store the new qHyperCubeDef
+$newQHyperCubeDef = @{}
+
+# Copy all properties from the original qHyperCubeDef to the new hash table
+$json.qHyperCubeDef.psobject.Properties | ForEach-Object {
+    $newQHyperCubeDef[$_.Name] = $_.Value
+}
+
+# Create a new qDimensions array
+$newQDimensions = @()
+
+# Iterate over each qDimension in the CSV file
+$qDimensions | ForEach-Object {
+    # Create a new hash table to store the new qDimension
+    $newQDimension = @{}
+
+    # Copy the properties from the CSV file to the new hash table
+    $_.psobject.Properties | ForEach-Object {
+        $newQDimension[$_.Name] = $_.Value
+    }
+
+    # Add the new qDimension to the array
+    $newQDimensions += $newQDimension
+}
+
+# Add the new qDimensions array to the new qHyperCubeDef hash table
+$newQHyperCubeDef.qDimensions = $newQDimensions
+
+# Create a new qMeasures array
+$newQMeasures = @()
+
+# Iterate over each qMeasure in the CSV file
+$qMeasures | ForEach-Object {
+    # Create a new hash table to store the new qMeasure
+    $newQMeasure = @{}
+
+    # Copy the properties from the CSV file to the new hash table
+    $_.psobject.Properties | ForEach-Object {
+        $newQMeasure[$_.Name] = $_.Value
+    }
+
+    # Add the new qMeasure to the array
+    $newQMeasures += $newQMeasure
+}
+
+# Add the new qMeasures array to the new qHyperCubeDef hash table
+$newQHyperCubeDef.qMeasures = $newQMeasures
+
+# Create a new hash table to store the updated JSON
+$newJson = @{}
+
+# Copy all properties from the original JSON to the new hash table
+$json.psobject.Properties | ForEach-Object {
+    # If the property is the qHyperCubeDef, use the new qHyperCubeDef hash table
+    if ($_.Name -eq "qHyperCubeDef") {
+        $newJson.qHyperCubeDef = $newQHyperCubeDef
+    } else {
+        $newJson[$_.Name] = $_.Value
+    }
+}
+
+# Convert the new JSON hash table to a JSON string
+$newJsonString = ConvertTo-Json $newJson
+
+# Write the new JSON string to a file
+Set-Content -Path "new.json" -Value $newJsonString
