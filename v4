@@ -1,3 +1,10 @@
-for ($i = 1; $i -le 5; $i++) {
-    New-Variable -Name "myVar$i" -Value $i
+#6 Add the dimensions to the Qlik Sense table properties
+foreach ($dimension in $dimensions) {
+    $newDimension = [PSCustomObject] @{
+        qDef = @{
+            qFieldDefs = @($dimension.qFieldDefs)
+            qFieldLabels = @($dimension.qLabelExpression)
+        }
+    }
+    $newTableProperties.qHyperCubeDef.qDimensions += $newDimension
 }
