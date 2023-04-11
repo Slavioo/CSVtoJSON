@@ -1,39 +1,14 @@
-# Read the JSON template
-$template = Get-Content .\template.json | ConvertFrom-Json
-
-# Read the dimensions CSV file
-$dimensions = Import-Csv .\dimensions.csv
-
-# Read the expressions CSV file
-$expressions = Import-Csv .\expressions.csv
-
-# Create the qDimensionsArray object
-$qDimensionsArray = foreach ($dimension in $dimensions) {
-    $qDimension = @{
-        qDef = $dimension.qFieldDefs
-        qLabelExpression = $dimension.qLabelExpression
+$newTableProperties = [ordered]@{
+    qInfo = [ordered]@{
+        qType = "table"
+        qId = $DashboardSheet.Replace(' ', '')
     }
-    $qDimension
+    qHyperCubeDef = [ordered]@{
+        qDimensions = @()
+        qMeasures = @()
+        qInterColumnSortOrder = @($columnIdList)
+        qColumnOrder = @($columnIdList)
+        columnOrder = @($columnIdList)
+        columnWidths = @($columnWidths)
+    }
 }
-
-# Create the qMeasuresArray object
-$qMeasuresArray = foreach ($expression in $expressions) {
-    $qMeasure = @{
-        qDef = $expression.qDef
-        qLabelExpression = $expression.qLabelExpression
-    }
-    $qMeasure
-}
-
-# Create the qHyperCubeDef object by merging the template with the dimensions and expressions
-$qHyperCubeDef = $template.qHyperCubeDef + @{
-    qDimensions = @{
-        qDef = $qDimensionsArray
-    }
-    qMeasures = @{
-        qDef = $qMeasuresArray
-    }
-} | Select-Object *
-
-# Output the qHyperCubeDef as JSON
-$qHyperCubeDef | ConvertTo-Json -Depth 10
