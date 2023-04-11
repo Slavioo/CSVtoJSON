@@ -1,15 +1,14 @@
-#6 Add the dimensions to the Qlik Sense table properties
-$newTableProperties.qHyperCubeDef.qDimensions = foreach ($dimension in $dimensions) {
-    $dimensionProperties | Select-Object * | ForEach-Object {
-        $_.qDef.qFieldDefs = @($dimension.qFieldDefs)
-        $_
+foreach ($dimension in $dimensions) {
+    $qDimension = @{
+        qDef = @{
+            qFieldDefs = $dimension.qFieldDefs
+            # add any other properties not defined in $dimension
+            $dimension.PSObject.Properties | Where-Object { $_.Name -ne "qFieldDefs" } | ForEach-Object {
+                if (-not $qDimension.qDef.ContainsKey($_.Name)) {
+                    $qDimension.qDef.Add($_.Name, $_.Value)
+                }
+            }
+        }
     }
-}
-
-#7 Add the measures to the Qlik Sense table properties
-$newTableProperties.qHyperCubeDef.qMeasures = foreach ($measure in $measures) {
-    $measureProperties | Select-Object * | ForEach-Object {
-        $_.qDef.qDef = $measure.qDef
-        $_
-    }
+    $newTableProperties.qHyperCubeDef.qDimensions += $qDimension
 }
