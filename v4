@@ -1,23 +1,6 @@
-# Get the template table properties
-$templateTableProperties = Get-Content $templatePathTemplateTableProperties -Raw | ConvertFrom-Json
-
-# Create a new object for the table properties
-$newTableProperties = [PSCustomObject]@{
-    qInfo = [PSCustomObject]@{
-        $DashboardSheet.psobject.Properties | ForEach-Object {
-            if($templateTableProperties.qInfo.psobject.Properties.Name -contains $_.Name){
-                $_.Value
-            }else{
-                $templateTableProperties.qInfo.$($_.Name)
-            }
-        }
-    }
-    qHyperCubeDef = [PSCustomObject]@{
-        qInterColumnSortOrder = $columnIdList
-        qColumnOrder = $columnIdList
-        columnOrder = $columnIdList
-        columnWidths = $columnWidths
-        qDimensions = @()
-        qMeasures = @()
-    }
+foreach ($dimension in $dimensions) {
+  $qDimension = $dimensionProperties | Select-Object *
+  $qDimension.qDef.qFieldDefs = @($dimension.qFieldDefs)
+  $qDimension = $qDimension.psobject.Copy()
+  $newTableProperties.qHyperCubeDef.qDimensions += $qDimension
 }
