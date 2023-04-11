@@ -1,0 +1,46 @@
+# Load the JSON template into a variable
+$template = Get-Content -Raw -Path "template.json" | ConvertFrom-Json
+
+# Load the dimension and expression data from CSV files
+$dimensions = Import-Csv -Path "dimensions.csv"
+$expressions = Import-Csv -Path "expressions.csv"
+
+# Create an array to hold the dimension objects
+$dimensionObjects = @()
+
+# Loop through the dimension data and create objects for each one
+foreach ($dimension in $dimensions) {
+    $dimensionObject = @{
+        qDef = @{
+            qFieldDefs = @($dimension.qFieldDefs)
+        }
+        qLabelExpression = $dimension.qLabelExpression
+    }
+
+    # Add the dimension object to the array
+    $dimensionObjects += $dimensionObject
+}
+
+# Set the dimensions array in the JSON template
+$template.layout.qHyperCubeDef.qDimensions = $dimensionObjects
+
+# Create an array to hold the expression objects
+$expressionObjects = @()
+
+# Loop through the expression data and create objects for each one
+foreach ($expression in $expressions) {
+    $expressionObject = @{
+        qDef = $expression.qDef
+        qLabelExpression = $expression.qLabelExpression
+    }
+
+    # Add the expression object to the array
+    $expressionObjects += $expressionObject
+}
+
+# Set the expressions array in the JSON template
+$template.layout.qHyperCubeDef.qMeasures = $expressionObjects
+
+# Convert the template back to JSON and save it to a file
+$templateJson = ConvertTo-Json -InputObject $template -Depth 100
+$templateJson | Out-File -FilePath "newTemplate.json"
