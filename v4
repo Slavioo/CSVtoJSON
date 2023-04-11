@@ -1,6 +1,14 @@
+#6 Add the dimensions to the Qlik Sense table properties
 foreach ($dimension in $dimensions) {
+
   $qDimension = $dimensionProperties | Select-Object *
-  $qDimension.qDef.qFieldDefs = @($dimension.qFieldDefs)
-  $qDimension = $qDimension.psobject.Copy()
+
+  # split the qFieldDefs string into an array of field names
+  $fieldDefs = $dimension.qFieldDefs -split "," | ForEach-Object { $_.Trim() }
+
+  # set qFieldDefs to the array of field names
+  $qDimension.qDef.qFieldDefs = $fieldDefs
+
   $newTableProperties.qHyperCubeDef.qDimensions += $qDimension
+
 }
