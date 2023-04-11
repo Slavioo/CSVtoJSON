@@ -1,0 +1,2 @@
+$jsonData = Get-Content -Path "C:\path\to\json\file.json" -Raw
+New-Variable -Name "MyConstantVariable" -Value $jsonData -Option Constant
