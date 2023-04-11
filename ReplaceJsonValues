@@ -1,0 +1,12 @@
+# Load the contents of json1 and json2 into variables
+$json1 = Get-Content -Path "path/to/json1.json" -Raw | ConvertFrom-Json
+$json2 = Get-Content -Path "path/to/json2.json" -Raw | ConvertFrom-Json
+
+# Loop through the properties in json2 and replace the corresponding properties in json1
+$json2.PSObject.Properties | ForEach-Object {
+    $propertyName = $_.Name
+    $json1.$propertyName = $_.Value
+}
+
+# Save the updated json1 to a file
+$json1 | ConvertTo-Json | Out-File -FilePath "path/to/updated_json1.json"
