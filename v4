@@ -1,15 +1,3 @@
-#6 Add the dimensions to the Qlik Sense table properties
-
-$i = 1
-
-foreach ($dimension in $dimensions) {
-
-  $qDimension = $dimensionProperties | Select-Object *
-
-  $qDimension.qDef.qFieldDefs = @($dimension.qFieldDefs)
-
-  $newTableProperties.qHyperCubeDef | Add-Member -Name "newDimension$i" -Value $qDimension -MemberType NoteProperty
-
-  $i++
-
+for ($i = 1; $i -le 5; $i++) {
+    New-Variable -Name "myVar$i" -Value $i
 }
