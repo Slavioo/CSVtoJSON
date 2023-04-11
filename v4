@@ -1,14 +1,13 @@
-foreach ($dimension in $dimensions) {
-    $qDimension = @{
+$newTableProperties.qHyperCubeDef.qDimensions = foreach ($dimension in $dimensions) {
+    $qDimension = [pscustomobject]@{
         qDef = @{
             qFieldDefs = $dimension.qFieldDefs
-            # add any other properties not defined in $dimension
-            $dimension.PSObject.Properties | Where-Object { $_.Name -ne "qFieldDefs" } | ForEach-Object {
-                if (-not $qDimension.qDef.ContainsKey($_.Name)) {
-                    $qDimension.qDef.Add($_.Name, $_.Value)
-                }
-            }
         }
     }
-    $newTableProperties.qHyperCubeDef.qDimensions += $qDimension
+    $existingProps = $newTableProperties.qHyperCubeDef.qDimensions | Where-Object { $_.qDef.qFieldDefs -eq $dimension.qFieldDefs }
+    if ($existingProps) {
+        $existingProps | Select-Object *
+    } else {
+        $qDimension
+    }
 }
