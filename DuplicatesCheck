@@ -1,0 +1,19 @@
+# Replace "Path\to\your\file1.csv" with the path to your first CSV file
+# Replace "Path\to\your\file2.csv" with the path to your second CSV file
+# Replace "ColumnName" with the name of the column you want to check for duplicates
+
+$csv1 = Import-Csv -Path "Path\to\your\file1.csv"
+$csv2 = Import-Csv -Path "Path\to\your\file2.csv"
+
+$columnValues = $csv1.ColumnName + $csv2.ColumnName
+$duplicates = $columnValues | Group-Object | Where-Object {$_.Count -gt 1}
+
+if ($duplicates) {
+    foreach ($duplicate in $duplicates) {
+        Write-Host "The value '$($duplicate.Name)' appears $($duplicate.Count) times in the '$($duplicate.Group[0].ColumnName)' column in both files."
+    }
+    Write-Host "Duplicates found. Stopping script."
+    Exit
+} else {
+    Write-Host "No duplicates found in the '$($csv1.ColumnName)' and '$($csv2.ColumnName)' columns."
+}
