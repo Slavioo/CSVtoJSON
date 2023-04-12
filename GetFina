@@ -1,0 +1,36 @@
+# Define the API endpoint and the parameters for the request
+$Endpoint = 'https://min-api.cryptocompare.com/data/v2/histoday'
+$Params = @{
+    fsym = 'BTC'
+    tsym = 'USD'
+    limit = 100
+}
+
+# Make the request and get the historical price data
+$Response = Invoke-RestMethod -Uri $Endpoint -Method Get -Body $Params
+$Data = $Response.Data
+
+# Convert the data to a PowerShell object and calculate the moving averages and Bollinger bands
+$Prices = $Data | ForEach-Object {
+    [PSCustomObject]@{
+        Date = [DateTime]::ParseExact($_.time.ToString(), 'yyyyMMdd', $null)
+        Price = $_.close
+    }
+}
+
+$MA20 = $Prices | ForEach-Object {
+    $_ | Add-Member -NotePropertyName 'MA20' -NotePropertyValue (($Prices[($_.PSObject.Properties.Value - 1)..($_.PSObject.Properties.Value - 20)] | Measure-Object -Property 'Price' -Average).Average)
+} | Select-Object -Property Date, Price, MA20
+
+$MA50 = $Prices | ForEach-Object {
+    $_ | Add-Member -NotePropertyName 'MA50' -NotePropertyValue (($Prices[($_.PSObject.Properties.Value - 1)..($_.PSObject.Properties.Value - 50)] | Measure-Object -Property 'Price' -Average).Average)
+} | Select-Object -Property Date, Price, MA50
+
+$BollingerBands = $Prices | ForEach-Object {
+    $PricesInRange = $Prices[($_.PSObject.Properties.Value - 1)..($_.PSObject.Properties.Value - 20)]
+    $StdDev = [Math]::Sqrt(($PricesInRange | Measure-Object -Property 'Price' -StandardDeviation).StandardDeviation)
+    $UpperBand = $PricesInRange[-1].Price + (2 * $StdDev)
+    $LowerBand = $PricesInRange[-1].Price - (2 * $StdDev)
+    $_ | Add-Member -NotePropertyName 'UpperBand' -NotePropertyValue $UpperBand |
+        Add-Member -NotePropertyName 'LowerBand' -NotePropertyValue $LowerBand
+} | Select-Object -Property Date, Price, UpperBand, LowerBand
