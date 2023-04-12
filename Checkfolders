@@ -1,0 +1,15 @@
+# Set the path to the directory you want to check
+$directoryPath = "C:\ExampleDirectory"
+
+# Get an array of folder names in the specified directory
+$folderNames = Get-ChildItem -Path $directoryPath -Directory | Select-Object -ExpandProperty Name
+
+# Prompt the user to select one of the folders
+$selectedFolder = Read-Host "Select a folder by typing its number:`n$($folderNames | ForEach-Object { '- ' + $_ })"
+
+# Verify that the selected folder exists
+if ($selectedFolder -in $folderNames) {
+    Write-Host "You selected folder: $selectedFolder"
+} else {
+    Write-Host "Invalid selection. Please try again."
+}
