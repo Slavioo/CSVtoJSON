@@ -1,0 +1,7 @@
+$string = "This is a string with an = sign."
+
+if ($string.Contains("=")) {
+    Write-Output "The string contains an equal sign."
+} else {
+    Write-Output "The string does not contain an equal sign."
+}
